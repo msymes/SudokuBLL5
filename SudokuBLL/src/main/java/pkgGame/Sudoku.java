@@ -13,7 +13,7 @@ import java.util.Random;
 import pkgEnum.ePuzzleViolation;
 import pkgHelper.LatinSquare;
 import pkgHelper.PuzzleViolation;
- 
+import pkgEnum.eGameDifficulty;
 
 /**
  * Sudoku - This class extends LatinSquare, adding methods, constructor to
@@ -25,7 +25,7 @@ import pkgHelper.PuzzleViolation;
  *
  */
 public class Sudoku extends LatinSquare implements Serializable {
-
+//**Declare any variables**//
 	/**
 	 * 
 	 * iSize - the length of the width/height of the Sudoku puzzle.
@@ -60,6 +60,11 @@ public class Sudoku extends LatinSquare implements Serializable {
 	 * @param iSize- length of the width/height of the puzzle
 	 * @throws Exception if the iSize given doesn't have a whole number square root
 	 */
+	
+	private eGameDifficulty eGameDifficulty;
+	
+//**Declare Constructors**//	
+	
 	public Sudoku(int iSize) throws Exception {
 
 		this.iSize = iSize;
@@ -101,7 +106,64 @@ public class Sudoku extends LatinSquare implements Serializable {
 		}
 
 	}
+	
+	private Sudoku() {
+		eGameDifficulty = pkgEnum.eGameDifficulty.EASY;
+	}
+	
+	public Sudoku(int iSize, eGameDifficulty eGD) throws Exception{
+		this(iSize);
+		eGameDifficulty = eGD;
+		RemoveCells();
+	}
 
+//**Methods**//
+	
+	private void RemoveCells() {
+		/**Set cells to zero until the games difficulty is met**/
+		int possibleValues = PossibleValuesMultiplier(cells);
+		while(!IsDifficultyMet(possibleValues)) {
+			/**generate 2 random numbers between 0-8 and set
+			 * that row column to 0
+			 */
+			Random rand = new Random();
+			int iRow =  rand.nextInt(9);
+			int iCol = rand.nextInt(9);
+			getPuzzle()[iRow][iCol] = 0;
+		}
+	}
+	
+	private boolean IsDifficultyMet(int iPossibleValues) {
+		/**returns a boolean when the difficulty is met**/
+		if (iPossibleValues > eGameDifficulty.getiDifficulty()) {
+			return true;
+		}
+		return false;
+	}
+	
+	private void SetRemainingCells() {
+		/**set lst remaining values unshuffled**/
+		for (int iRow = 0; iRow < iSize; iRow++) {
+			for (int iCol = 0; iCol < iSize; iCol++) {
+				SudokuCell c = new SudokuCell(iRow, iCol);
+				c.setlstValidValues(getAllValidCellValues(iCol, iRow));
+				cells.put(c.hashCode(), c);
+			}
+		}
+	}
+	
+	private int PossibleValuesMultiplier(java.util.HashMap<java.lang.Integer,Sudoku.SudokuCell> cells) {
+		int iPossibleValues = 1;
+		/**Multiply all the remaining values size**/
+		for (int iRow = 0; iRow < iSize; iRow++) {
+			for (int iCol = 0; iCol < iSize; iCol++) {
+				SudokuCell c = (SudokuCell)cells.get(Objects.hash(iRow,iCol));
+				iPossibleValues = iPossibleValues*c.getLstValidValues().size();
+			}
+		}
+		return iPossibleValues;
+	}
+	
 	
 	/**
 	 * getiSize - the UI needs to know the size of the puzzle
